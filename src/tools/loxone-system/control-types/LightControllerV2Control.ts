@@ -28,6 +28,12 @@ export class LightControllerV2Control extends AbstractControlType {
         name: 'off',
         description: 'Turn off',
         commandType: 'pulse'
+      },
+      {
+        name: 'changeTo',
+        description: 'Activate a mood by number (e.g. "changeTo/1"). Available moods are in favoriteMoods and additionalMoods states.',
+        commandType: 'setValue',
+        valueType: 'number'
       }
     ];
     
@@ -63,6 +69,12 @@ export class LightControllerV2Control extends AbstractControlType {
   buildControlCommand(command: string, value?: unknown): string {
     if (command === 'on' || command === 'off') {
       return `jdev/sps/io/${this.uuid}/${command}`;
+    } else if (command.startsWith('changeTo/')) {
+      // Activate a mood by number e.g. changeTo/1
+      return `jdev/sps/io/${this.uuid}/${command}`;
+    } else if (command === 'changeTo' && value !== undefined) {
+      // Activate a mood by number passed as value e.g. command=changeTo value=1
+      return `jdev/sps/io/${this.uuid}/changeTo/${value}`;
     } else if (command === 'hsv' || command === 'temp' || command === 'setBrightness') {
       // Forward color commands to ColorPickerV2 subcontrol
       let colorPickerUuid: string | undefined;
@@ -128,7 +140,8 @@ export class LightControllerV2Control extends AbstractControlType {
   protected shouldFilterState(state: ControlState, ignoredStates: string[], importantStates: string[]): boolean {
     // States to always filter out for room controllers
     const roomControllerIgnored = [
-      'activeMoods', 'moodList', 'activeMoodsNum', 'circuitNames', 'daylightConfig', 'presence'
+      'activeMoods', 'activeMoodsNum', 'circuitNames', 'daylightConfig', 'presence'
+      // Note: moodList removed from ignored so mood names are visible
     ];
     if (roomControllerIgnored.includes(state.name)) {
       return true;
