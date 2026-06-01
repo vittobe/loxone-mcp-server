@@ -115,12 +115,10 @@ export class LightControllerV2Control extends AbstractControlType {
       if (colonIdx === -1) throw new Error('setLight value must be in format "subControlUuid:value"');
       const subUuid = str.substring(0, colonIdx);
       const subValue = str.substring(colonIdx + 1);
-      if (subValue === 'on' || subValue === 'off') {
-        return `jdev/sps/io/${subUuid}/${subValue}`;
-      } else {
-        // Dimmer: use setValue command
-        return `jdev/sps/io/${subUuid}/setValue/${subValue}`;
-      }
+      // Loxone verwacht de / in subcontrol UUIDs als %2F in de HTTP URL
+      const encodedSubUuid = subUuid.replace('/', '%2F');
+      // on, off of een dimwaarde (0-100) werken allemaal direct
+      return `jdev/sps/io/${encodedSubUuid}/${subValue}`;
     } else if (command === 'hsv' || command === 'temp' || command === 'setBrightness') {
       // Forward color commands to ColorPickerV2 subcontrol
       let colorPickerUuid: string | undefined;
